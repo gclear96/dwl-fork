@@ -55,6 +55,22 @@ Configured in `config.def.h`:
 
 Adjust as needed.
 
+## Prereqs
+
+### Build
+- C compiler and `make`
+- `pkg-config`
+- `wayland-scanner` (from `wayland`)
+- `wayland-protocols`
+- `wlroots-0.19` development headers/libs
+- `wayland-server`, `xkbcommon`, `libinput`
+- Optional XWayland support: enable `XWAYLAND` in `config.mk` and install `xcb` + `xcb-icccm`
+
+### Runtime
+- A wlroots-compatible Wayland stack (DRM/KMS or nested backend)
+- seat/session manager for DRM backends (e.g., logind or seatd)
+- Defaults in `config.def.h` assume: `alacritty`, `walker`, `firefox`, `wbg`, `dwlb`
+
 ## Build
 ```
 make clean && make
