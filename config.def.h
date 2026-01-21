@@ -40,7 +40,7 @@ static int log_level = WLR_ERROR;
 /* Autostart */
 static const char *const autostart[] = {
 	"wbg", "/path/to/your/image", NULL,
-	"/bin/sh", "-c", "/home/gyarepyon/dwl-project/dotfiles/dwlb/run.sh", NULL,
+	"/bin/sh", "-c", "$HOME/.config/dwlb/run.sh", NULL,
 	NULL /* terminate */
 };
 
