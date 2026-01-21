@@ -14,12 +14,12 @@ static const unsigned int gappih           = 5;  /* horiz inner gap between wind
 static const unsigned int gappiv           = 5;  /* vert inner gap between windows */
 static const unsigned int gappoh           = 20; /* horiz outer gap between windows and screen edge */
 static const unsigned int gappov           = 20; /* vert outer gap between windows and screen edge */
-static const float rootcolor[]             = COLOR(0x222222ff);
-static const float bordercolor[]           = COLOR(0x444444ff);
-static const float focuscolor[]            = COLOR(0x005577ff);
-static const float urgentcolor[]           = COLOR(0xff0000ff);
+static const float rootcolor[]             = COLOR(0x32302fff);
+static const float bordercolor[]           = COLOR(0x504945ff);
+static const float focuscolor[]            = COLOR(0x7daea3ff);
+static const float urgentcolor[]           = COLOR(0xea6962ff);
 /* This conforms to the xdg-protocol. Set the alpha to zero to restore the old behavior */
-static const float fullscreen_bg[]         = {0.0f, 0.0f, 0.0f, 1.0f}; /* You can also use glsl colors */
+static const float fullscreen_bg[]         = COLOR(0x32302fff); /* You can also use glsl colors */
 static const int respect_monitor_reserved_area = 0;  /* 1 to monitor center while respecting the monitor's reserved area, 0 to monitor center */
 static const float default_opacity_unfocus = 0.70f;
 static const float default_opacity_focus   = 1.00f;
