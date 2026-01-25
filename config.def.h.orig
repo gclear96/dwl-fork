@@ -33,7 +33,6 @@ enum {
 
 /* tagging - TAGCOUNT must be no greater than 31 */
 #define TAGCOUNT (9)
-static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
 
 /* logging */
 static int log_level = WLR_ERROR;
@@ -41,7 +40,7 @@ static int log_level = WLR_ERROR;
 /* Autostart */
 static const char *const autostart[] = {
 	"wbg", "/path/to/your/image", NULL,
-	"/bin/sh", "-c", "$HOME/.config/someblocks/run.sh", NULL,
+	"/bin/sh", "-c", "$HOME/.config/somebar/run.sh", NULL,
 	NULL /* terminate */
 };
 

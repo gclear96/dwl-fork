@@ -5,8 +5,9 @@ A dwl fork tuned to feel comfortable coming from Hyprland, with performance‑fi
 ## What’s included
 
 ### IPC + bar workflow
-- **dwl‑ipc‑unstable‑v2** protocol enabled (for dwlb and IPC tooling)
-- **dwlb** autostarted by default
+- **dwl‑ipc‑unstable‑v2** protocol enabled (for IPC tooling)
+- **net‑tapesoftware‑dwl‑wm‑unstable‑v1** enabled (for somebar IPC)
+- **someblocks** autostarted by default (feeds somebar)
 
 ### Layouts + gaps + borders
 - Layouts: **tile**, **monocle**, **centered master**, **snail** (dwindle‑ish)
@@ -39,7 +40,7 @@ A dwl fork tuned to feel comfortable coming from Hyprland, with performance‑fi
 - **Alt+Q**: kill client
 - **Alt+V**: toggle floating
 - **Alt+S** or **Alt+`**: scratchpad
-- **Alt+B**: toggle bar visibility (IPC)
+- **Alt+B**: toggle somebar visibility (uses `somebar -c toggle selected`)
 - **Alt+H/J/K/L**: focus left/down/up/right
 - **Alt+Shift+H/J/K/L**: swap client in direction
 - **Alt+Ctrl+H/L**: adjust mfact
@@ -51,7 +52,12 @@ A dwl fork tuned to feel comfortable coming from Hyprland, with performance‑fi
 ## Autostart
 Configured in `config.def.h`:
 - `wbg /path/to/your/image`
-- `dwlb`
+- `~/.config/someblocks/run.sh` (status updates)
+
+You must start dwl with somebar via:
+```
+dwl -s somebar
+```
 
 Adjust as needed.
 
@@ -69,11 +75,59 @@ Adjust as needed.
 ### Runtime
 - A wlroots-compatible Wayland stack (DRM/KMS or nested backend)
 - seat/session manager for DRM backends (e.g., logind or seatd)
-- Defaults in `config.def.h` assume: `alacritty`, `walker`, `firefox`, `wbg`, `dwlb`
+- Defaults in `config.def.h` assume: `alacritty`, `walker`, `firefox`, `wbg`, `somebar`
+- Build and install `someblocks` separately from `./someblocks` (it reads `blocks.h`, created from `blocks.def.h` on first build).
 
 ## Build
 ```
 make clean && make
+```
+
+## Install (detailed)
+These steps assume `/usr/local` as the install prefix. If you want a different prefix, set
+`PREFIX=/path` when running install commands.
+
+### 1) Install somebar (IPC-patched)
+```
+cd /path/to/somebar
+cp src/config.def.hpp src/config.hpp
+meson setup build
+ninja -C build
+sudo ninja -C build install
+```
+
+### 2) Install someblocks
+```
+cd /path/to/someblocks
+make
+sudo make install
+```
+Note: the first `make` creates `blocks.h` from `blocks.def.h`. Edit `blocks.h` to customize blocks.
+
+### 3) Install dwl
+```
+cd /path/to/dwl
+make clean && make
+sudo make install
+```
+
+This installs `dwl` under `$(PREFIX)/bin` (default: `/usr/local/bin`) and the session file under
+`$(DATADIR)/wayland-sessions`. The installed session launches somebar with stdin closed:
+```
+dwl -s "exec somebar </dev/null"
+```
+
+### 4) Install user scripts
+```
+mkdir -p ~/.config/someblocks
+cp /path/to/dotfiles/someblocks/run.sh ~/.config/someblocks/
+```
+
+### 5) Autostart and session
+- Autostart is configured in `config.def.h` to run `~/.config/someblocks/run.sh`.
+- Start dwl via your greeter session entry or with:
+```
+dwl -s "exec somebar </dev/null"
 ```
 
 ## Notes
