@@ -35,12 +35,13 @@ A dwl fork tuned to feel comfortable coming from Hyprland, with performance‑fi
 
 ## Keybinds (Hypr‑inspired)
 - **Alt+Return**: terminal (alacritty)
-- **Alt+R**: app launcher (walker)
+- **Alt+R**: app launcher (tofi-run)
 - **Alt+F**: Firefox
 - **Alt+Q**: kill client
 - **Alt+V**: toggle floating
 - **Alt+S** or **Alt+`**: scratchpad
 - **Alt+B**: toggle somebar visibility (uses `somebar -c toggle selected`)
+- **Alt+Shift+P**: power menu (tofi)
 - **Alt+H/J/K/L**: focus left/down/up/right
 - **Alt+Shift+H/J/K/L**: swap client in direction
 - **Alt+Ctrl+H/L**: adjust mfact
@@ -129,6 +130,10 @@ dwl -s "exec somebar </dev/null"
 ```
 mkdir -p ~/.config/someblocks
 cp /path/to/dwl-dotfiles/someblocks/run.sh ~/.config/someblocks/
+mkdir -p ~/.config/tofi
+cp /path/to/dwl-dotfiles/tofi/config ~/.config/tofi/config
+cp /path/to/dwl-dotfiles/tofi/run.sh ~/.config/tofi/run.sh
+cp /path/to/dwl-dotfiles/tofi/power.sh ~/.config/tofi/power.sh
 ```
 
 ### 5) Autostart and session
