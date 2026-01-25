@@ -87,9 +87,17 @@ make clean && make
 These steps assume `/usr/local` as the install prefix. If you want a different prefix, set
 `PREFIX=/path` when running install commands.
 
+### 0) Clone the repos
+```
+git clone https://github.com/gclear96/dwl-fork.git
+git clone https://github.com/gclear96/somebar-fork.git
+git clone https://github.com/gclear96/someblocks-fork.git
+git clone https://github.com/gclear96/dwl-dotfiles.git
+```
+
 ### 1) Install somebar (IPC-patched)
 ```
-cd /path/to/somebar
+cd /path/to/somebar-fork
 cp src/config.def.hpp src/config.hpp
 meson setup build
 ninja -C build
@@ -98,7 +106,7 @@ sudo ninja -C build install
 
 ### 2) Install someblocks
 ```
-cd /path/to/someblocks
+cd /path/to/someblocks-fork
 make
 sudo make install
 ```
@@ -106,7 +114,7 @@ Note: the first `make` creates `blocks.h` from `blocks.def.h`. Edit `blocks.h` t
 
 ### 3) Install dwl
 ```
-cd /path/to/dwl
+cd /path/to/dwl-fork
 make clean && make
 sudo make install
 ```
@@ -120,7 +128,7 @@ dwl -s "exec somebar </dev/null"
 ### 4) Install user scripts
 ```
 mkdir -p ~/.config/someblocks
-cp /path/to/dotfiles/someblocks/run.sh ~/.config/someblocks/
+cp /path/to/dwl-dotfiles/someblocks/run.sh ~/.config/someblocks/
 ```
 
 ### 5) Autostart and session
