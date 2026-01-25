@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=dwl (hyprish)
+Comment=Custom dwl build with somebar/someblocks
+Exec=dwl -s "exec somebar </dev/null"
+Type=Application
+DesktopNames=dwl
+Keywords=Wayland;tiling;wm;
