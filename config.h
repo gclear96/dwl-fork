@@ -49,8 +49,9 @@ static int log_level = WLR_ERROR;
 
 /* Autostart */
 static const char *const autostart[] = {
-	"wbg", "/path/to/your/image", NULL,
+	"/bin/sh", "-c", "$HOME/.config/dwl/wallpaper.sh", NULL,
 	"/bin/sh", "-c", "$HOME/.config/dwl/session-env.sh", NULL,
+	"/bin/sh", "-c", "$HOME/.config/dwl/output-setup.sh", NULL,
 	"mako", NULL,
 	"/bin/sh", "-c", "$HOME/.config/dwl/polkit-agent.sh", NULL,
 	"/bin/sh", "-c", "$HOME/.config/dwl/idle.sh", NULL,

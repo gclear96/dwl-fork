@@ -50,6 +50,7 @@ Additional daily-driver bindings added in this setup:
 - desktop integration: `xdg-desktop-portal`, `xdg-desktop-portal-wlr`, `xdg-desktop-portal-gtk`
 - auth agent: `lxqt-policykit` or `polkit-gnome`
 - helpers: `grim`, `slurp`, `wf-recorder`, `wl-clipboard`, `cliphist`, `playerctl`, `wpctl`, `brightnessctl`, `upower`
+- wallpaper/scaling helpers: `wbg`, `wlr-randr`
 
 ## Local SceneFX integration
 
@@ -87,6 +88,8 @@ rebuild dwl.
 - autostart in `config.h` runs `~/.config/someblocks/run.sh`
 - autostart in `config.h` also runs:
   - `~/.config/dwl/session-env.sh` (portal/dbus environment)
+  - `~/.config/dwl/wallpaper.sh`
+  - `~/.config/dwl/output-setup.sh`
   - `mako`
   - `~/.config/dwl/polkit-agent.sh`
   - `~/.config/dwl/idle.sh`

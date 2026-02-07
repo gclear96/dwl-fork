@@ -3614,8 +3614,11 @@ void
 snail(Monitor *m)
 {
 	int i = 0, n = 0;
-	unsigned int mw = m->w.width;
+	int mw = m->w.width;
 	unsigned int draw_borders = 1;
+	int oe = 1; /* outer gap enabled */
+	int ie = 1; /* inner gap enabled */
+	int x, y, w, h;
 	Client *c, *prev = NULL;
 	enum wlr_direction dir = WLR_DIRECTION_RIGHT;
 
@@ -3624,12 +3627,25 @@ snail(Monitor *m)
 			n++;
 	if (n == 0)
 		return;
+	if (smartgaps == n)
+		oe = 0;
 
 	if (n == smartborders)
 		draw_borders = 0;
+	if (n == 1)
+		ie = 0;
+
+	x = m->w.x + m->gappov * oe;
+	y = m->w.y + m->gappoh * oe;
+	w = m->w.width - 2 * m->gappov * oe;
+	h = m->w.height - 2 * m->gappoh * oe;
+	if (w < 1)
+		w = 1;
+	if (h < 1)
+		h = 1;
 
 	if (n > m->nmaster)
-		mw = m->nmaster ? (int)round(m->w.width * m->mfact) : 0;
+		mw = m->nmaster ? (int)round(w * m->mfact) : 0;
 
 	wl_list_for_each(c, &clients, link) {
 		if (!VISIBLEON(c, m) || c->isfloating || c->isfullscreen)
@@ -3643,8 +3659,10 @@ snail(Monitor *m)
 		 * master area with this window
 		 */
 		if (mw > 0 && i == 0) {
-			c->geom = (struct wlr_box){.x = m->w.x, .y = m->w.y,
-				.width = mw, .height = m->w.height};
+			c->geom = (struct wlr_box){.x = x, .y = y,
+				.width = mw - (m->gappiv * ie), .height = h};
+			if (c->geom.width < 1)
+				c->geom.width = 1;
 			/*
 			 * If the first window in the master area is wide, split it
 			 * horizontally and put next one on its right; otherwise, split it
@@ -3656,8 +3674,10 @@ snail(Monitor *m)
 		 * m->nmaster-th window
 		 */
 		} else if (i == m->nmaster) {
-			c->geom = (struct wlr_box){.x = m->w.x + mw, .y = m->w.y,
-				.width = m->w.width - mw, .height = m->w.height};
+			c->geom = (struct wlr_box){.x = x + mw + (m->gappiv * ie), .y = y,
+				.width = w - mw - (m->gappiv * ie), .height = h};
+			if (c->geom.width < 1)
+				c->geom.width = 1;
 			/*
 			 * If the first window in the stack is wide, split it horizontally
 			 * and put next one on its right; otherwise, split it vertically and
@@ -3668,10 +3688,19 @@ snail(Monitor *m)
 		 * Split the previous horizontally and put the current window on the right
 		 */
 		} else if (dir == WLR_DIRECTION_RIGHT) {
-			c->geom = (struct wlr_box){.x = prev->geom.x + prev->geom.width / 2, .y = prev->geom.y,
-				.width = prev->geom.width / 2, .height = prev->geom.height};
-			prev->geom = (struct wlr_box){.x = prev->geom.x, .y = prev->geom.y,
-				.width = prev->geom.width / 2, .height = prev->geom.height};
+			int gap = m->gappiv * ie;
+			int leftw = prev->geom.width / 2 - gap / 2;
+			if (leftw < 1)
+				leftw = 1;
+			c->geom = (struct wlr_box){
+				.x = prev->geom.x + leftw + gap,
+				.y = prev->geom.y,
+				.width = prev->geom.width - leftw - gap,
+				.height = prev->geom.height
+			};
+			if (c->geom.width < 1)
+				c->geom.width = 1;
+			prev->geom.width = leftw;
 			/*
 			 * If it's a stack window or the first narrow window in the master
 			 * area, put the next one below it
@@ -3682,28 +3711,65 @@ snail(Monitor *m)
 		 * Split the previous vertically and put the current window below it
 		 */
 		} else if (dir == WLR_DIRECTION_DOWN) {
-			c->geom = (struct wlr_box){.x = prev->geom.x, .y = prev->geom.y + prev->geom.height / 2,
-				.width = prev->geom.width, .height = prev->geom.height / 2};
-			prev->geom = (struct wlr_box){.x = prev->geom.x, .y = prev->geom.y,
-				.width = prev->geom.width, .height = prev->geom.height / 2};
+			int gap = m->gappih * ie;
+			int toph = prev->geom.height / 2 - gap / 2;
+			if (toph < 1)
+				toph = 1;
+			c->geom = (struct wlr_box){
+				.x = prev->geom.x,
+				.y = prev->geom.y + toph + gap,
+				.width = prev->geom.width,
+				.height = prev->geom.height - toph - gap
+			};
+			if (c->geom.height < 1)
+				c->geom.height = 1;
+			prev->geom.height = toph;
 			dir = WLR_DIRECTION_LEFT;
 		/*
 		 * Split the previous horizontally and put the current window on the left
 		 */
 		} else if (dir == WLR_DIRECTION_LEFT) {
-			c->geom = (struct wlr_box){.x = prev->geom.x, .y = prev->geom.y,
-				.width = prev->geom.width / 2, .height = prev->geom.height};
-			prev->geom = (struct wlr_box){.x = prev->geom.x + prev->geom.width / 2, .y = prev->geom.y,
-				.width = prev->geom.width / 2, .height = prev->geom.height};
+			int gap = m->gappiv * ie;
+			int leftw = prev->geom.width / 2 - gap / 2;
+			if (leftw < 1)
+				leftw = 1;
+			c->geom = (struct wlr_box){
+				.x = prev->geom.x,
+				.y = prev->geom.y,
+				.width = leftw,
+				.height = prev->geom.height
+			};
+			prev->geom = (struct wlr_box){
+				.x = prev->geom.x + leftw + gap,
+				.y = prev->geom.y,
+				.width = prev->geom.width - leftw - gap,
+				.height = prev->geom.height
+			};
+			if (prev->geom.width < 1)
+				prev->geom.width = 1;
 			dir = WLR_DIRECTION_UP;
 		/*
 		 * Split the previous vertically and put the current window above it
 		 */
 		} else {
-			c->geom = (struct wlr_box){.x = prev->geom.x, .y = prev->geom.y,
-				.width = prev->geom.width, .height = prev->geom.height / 2};
-			prev->geom = (struct wlr_box){.x = prev->geom.x, .y = prev->geom.y + prev->geom.height / 2,
-				.width = prev->geom.width, .height = prev->geom.height / 2};
+			int gap = m->gappih * ie;
+			int toph = prev->geom.height / 2 - gap / 2;
+			if (toph < 1)
+				toph = 1;
+			c->geom = (struct wlr_box){
+				.x = prev->geom.x,
+				.y = prev->geom.y,
+				.width = prev->geom.width,
+				.height = toph
+			};
+			prev->geom = (struct wlr_box){
+				.x = prev->geom.x,
+				.y = prev->geom.y + toph + gap,
+				.width = prev->geom.width,
+				.height = prev->geom.height - toph - gap
+			};
+			if (prev->geom.height < 1)
+				prev->geom.height = 1;
 			dir = WLR_DIRECTION_RIGHT;
 		}
 		i++;
