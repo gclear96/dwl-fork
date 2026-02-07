@@ -1,7 +1,13 @@
 _VERSION = 0.8-dev
 VERSION  = `git describe --tags --dirty 2>/dev/null || echo $(_VERSION)`
 
-PKG_CONFIG = pkg-config
+SCENEFX_DIR = ../scenefx
+SCENEFX_BUILD = $(SCENEFX_DIR)/build
+SCENEFX_BUILD_ABS = $(abspath $(SCENEFX_BUILD))
+SCENEFX_CFLAGS = -I$(SCENEFX_DIR)/include
+SCENEFX_LIBS = -L$(SCENEFX_BUILD_ABS) -Wl,-rpath,$(SCENEFX_BUILD_ABS)
+PKG_CONFIG = env PKG_CONFIG_PATH=$(SCENEFX_BUILD_ABS)/meson-uninstalled pkg-config
+SCENEFX_PKG = scenefx-0.4-uninstalled
 
 # paths
 PREFIX = /usr/local

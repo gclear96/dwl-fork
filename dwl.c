@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <time.h>
+#include <scenefx/render/fx_renderer/fx_renderer.h>
 #include <unistd.h>
 #include <regex.h>
 #include <wayland-server-core.h>
@@ -46,7 +47,7 @@
 #include <wlr/types/wlr_primary_selection.h>
 #include <wlr/types/wlr_primary_selection_v1.h>
 #include <wlr/types/wlr_relative_pointer_v1.h>
-#include <wlr/types/wlr_scene.h>
+#include <scenefx/types/wlr_scene.h>
 #include <wlr/types/wlr_screencopy_v1.h>
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_server_decoration.h>
@@ -88,7 +89,7 @@
 /* enums */
 enum { CurNormal, CurPressed, CurMove, CurResize, Curmfact }; /* cursor */
 enum { XDGShell, LayerShell, X11 }; /* client types */
-enum { LyrBg, LyrBottom, LyrTile, LyrFloat, LyrTop, LyrFS, LyrOverlay, LyrBlock, NUM_LAYERS }; /* scene layers */
+enum { LyrBg, LyrBlur, LyrBottom, LyrTile, LyrFloat, LyrTop, LyrFS, LyrOverlay, LyrBlock, NUM_LAYERS }; /* scene layers */
 
 typedef union {
 	int i;
@@ -211,6 +212,7 @@ struct Monitor {
 	struct wlr_output *wlr_output;
 	struct wlr_scene_output *scene_output;
 	struct wlr_scene_rect *fullscreen_bg; /* See createmon() for info */
+	struct wlr_scene_optimized_blur *blur_layer;
 	struct wl_list dwl_ipc_outputs;
 	struct wl_list dwl_wm_monitor_link;
 	struct wl_listener frame;
@@ -663,6 +665,8 @@ arrange(Monitor *m)
 
 	wlr_scene_node_set_enabled(&m->fullscreen_bg->node,
 			(c = focustop(m)) && c->isfullscreen);
+	if (blur && m->blur_layer)
+		wlr_scene_node_set_enabled(&m->blur_layer->node, 1);
 
 	strncpy(m->ltsymbol, m->lt[m->sellt]->symbol, LENGTH(m->ltsymbol));
 
@@ -999,6 +1003,8 @@ cleanupmon(struct wl_listener *listener, void *data)
 	free(m->pertag);
 	closemon(m);
 	wlr_scene_node_destroy(&m->fullscreen_bg->node);
+	if (blur && m->blur_layer)
+		wlr_scene_node_destroy(&m->blur_layer->node);
 	free(m);
 }
 
@@ -1101,6 +1107,10 @@ commitlayersurfacenotify(struct wl_listener *listener, void *data)
 	}
 
 	arrangelayers(l->mon);
+	if (blur && l->mon && l->mon->blur_layer &&
+			(layer_surface->current.layer == ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND ||
+			 layer_surface->current.layer == ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM))
+		wlr_scene_optimized_blur_mark_dirty(l->mon->blur_layer);
 }
 
 void
@@ -1377,6 +1387,11 @@ createmon(struct wl_listener *listener, void *data)
 	/* updatemons() will resize and set correct position */
 	m->fullscreen_bg = wlr_scene_rect_create(layers[LyrFS], 0, 0, fullscreen_bg);
 	wlr_scene_node_set_enabled(&m->fullscreen_bg->node, 0);
+	if (blur) {
+		m->blur_layer = wlr_scene_optimized_blur_create(&scene->tree, 0, 0);
+		wlr_scene_node_reparent(&m->blur_layer->node, layers[LyrBlur]);
+		wlr_scene_node_set_enabled(&m->blur_layer->node, 0);
+	}
 
 	/* Adds this to the output layout in the order it was configured.
 	 *
@@ -2251,7 +2266,7 @@ gpureset(struct wl_listener *listener, void *data)
 	struct wlr_renderer *old_drw = drw;
 	struct wlr_allocator *old_alloc = alloc;
 	struct Monitor *m;
-	if (!(drw = wlr_renderer_autocreate(backend)))
+	if (!(drw = fx_renderer_create(backend)))
 		die("couldn't recreate renderer");
 
 	if (!(alloc = wlr_allocator_autocreate(backend, drw)))
@@ -3390,6 +3405,10 @@ setup(void)
 
 	/* Initialize the scene graph used to lay out windows */
 	scene = wlr_scene_create();
+	if (blur)
+		wlr_scene_set_blur_data(scene, blur_data.num_passes, (int)blur_data.radius,
+				blur_data.noise, blur_data.brightness, blur_data.contrast,
+				blur_data.saturation);
 	root_bg = wlr_scene_rect_create(&scene->tree, 0, 0, rootcolor);
 	for (i = 0; i < NUM_LAYERS; i++)
 		layers[i] = wlr_scene_tree_create(&scene->tree);
@@ -3400,7 +3419,7 @@ setup(void)
 	 * can also specify a renderer using the WLR_RENDERER env var.
 	 * The renderer is responsible for defining the various pixel formats it
 	 * supports for shared memory, this configures that for clients. */
-	if (!(drw = wlr_renderer_autocreate(backend)))
+	if (!(drw = fx_renderer_create(backend)))
 		die("couldn't create renderer");
 	wl_signal_add(&drw->events.lost, &gpu_reset);
 
@@ -4041,6 +4060,11 @@ updatemons(struct wl_listener *listener, void *data)
 
 		wlr_scene_node_set_position(&m->fullscreen_bg->node, m->m.x, m->m.y);
 		wlr_scene_rect_set_size(m->fullscreen_bg, m->m.width, m->m.height);
+		if (blur && m->blur_layer) {
+			wlr_scene_node_set_position(&m->blur_layer->node, m->m.x, m->m.y);
+			wlr_scene_optimized_blur_set_size(m->blur_layer, m->m.width, m->m.height);
+			wlr_scene_optimized_blur_mark_dirty(m->blur_layer);
+		}
 
 		if (m->lock_surface) {
 			struct wlr_scene_tree *scene_tree = m->lock_surface->surface->data;

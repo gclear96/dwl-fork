@@ -9,19 +9,28 @@ static const int bypass_surface_visibility = 0;  /* 1 means idle inhibitors will
 static const int smartborders              = 1;
 static const int smartgaps                 = 0;  /* 1 means no outer gap when there is only one window */
 static const int monoclegaps               = 0;  /* 1 means outer gaps in monocle layout */
-static const unsigned int borderpx         = 3;  /* border pixel of windows */
-static const unsigned int gappih           = 5;  /* horiz inner gap between windows */
-static const unsigned int gappiv           = 5;  /* vert inner gap between windows */
+static const unsigned int borderpx         = 1;  /* border pixel of windows */
+static const unsigned int gappih           = 20; /* horiz inner gap between windows */
+static const unsigned int gappiv           = 20; /* vert inner gap between windows */
 static const unsigned int gappoh           = 20; /* horiz outer gap between windows and screen edge */
-static const unsigned int gappov           = 20; /* vert outer gap between windows and screen edge */
-static const float rootcolor[]             = COLOR(0x222222ff);
-static const float bordercolor[]           = COLOR(0x444444ff);
-static const float focuscolor[]            = COLOR(0x005577ff);
-static const float urgentcolor[]           = COLOR(0xff0000ff);
+static const unsigned int gappov           = 30; /* vert outer gap between windows and screen edge */
+static const float rootcolor[]             = COLOR(0x282828ff);
+static const float bordercolor[]           = COLOR(0x5a524cff);
+static const float focuscolor[]            = COLOR(0xd8a657ff);
+static const float urgentcolor[]           = COLOR(0xea6962ff);
 /* This conforms to the xdg-protocol. Set the alpha to zero to restore the old behavior */
-static const float fullscreen_bg[]         = {0.0f, 0.0f, 0.0f, 1.0f}; /* You can also use glsl colors */
+static const float fullscreen_bg[]         = COLOR(0x282828ff); /* You can also use glsl colors */
+static const int blur                      = 1;
+static const struct blur_data blur_data    = {
+	.radius = 5,
+	.num_passes = 3,
+	.noise = 0.02f,
+	.brightness = 0.90f,
+	.contrast = 0.90f,
+	.saturation = 1.10f,
+};
 static const int respect_monitor_reserved_area = 0;  /* 1 to monitor center while respecting the monitor's reserved area, 0 to monitor center */
-static const float default_opacity_unfocus = 0.70f;
+static const float default_opacity_unfocus = 0.88f;
 static const float default_opacity_focus   = 1.00f;
 
 enum {
