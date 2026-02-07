@@ -38,6 +38,7 @@ Keybinds are configured in `config.h` and intentionally unchanged from this fork
 - wlroots-compatible Wayland stack (DRM/KMS or nested backend)
 - seat/session manager for DRM backends (logind/seatd)
 - bar stack: `somebar` + `someblocks`
+- session services: `mako`, `swayidle`, `swaylock`
 
 ## Local SceneFX integration
 
@@ -73,6 +74,7 @@ rebuild dwl.
 ## somebar / someblocks workflow
 
 - autostart in `config.h` runs `~/.config/someblocks/run.sh`
+- autostart in `config.h` also runs `mako` and `~/.config/dwl/idle.sh`
 - start dwl with somebar:
 
 ```sh

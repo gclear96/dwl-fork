@@ -50,6 +50,8 @@ static int log_level = WLR_ERROR;
 /* Autostart */
 static const char *const autostart[] = {
 	"wbg", "/path/to/your/image", NULL,
+	"mako", NULL,
+	"/bin/sh", "-c", "$HOME/.config/dwl/idle.sh", NULL,
 	"/bin/sh", "-c", "$HOME/.config/someblocks/run.sh", NULL,
 	NULL /* terminate */
 };
@@ -157,6 +159,7 @@ static const char *termcmd[] = { "alacritty", NULL };
 static const char *menucmd[] = { "/bin/sh", "-c", "tofi-run --config \"$HOME/.config/tofi/config\"", NULL };
 static const char *powermenucmd[] = { "/bin/sh", "-c", "$HOME/.config/tofi/power.sh", NULL };
 static const char *togglebarcmd[] = { "somebar", "-c", "toggle", "selected", NULL };
+static const char *lockcmd[] = { "/bin/sh", "-c", "$HOME/.config/dwl/lock.sh", NULL };
 /* named scratchpads - first arg matches the scratchkey in rules */
 static const char *scratchpadcmd[] = { "s", "alacritty", "-t", "scratchpad", NULL };
 
@@ -166,6 +169,7 @@ static const Key keys[] = {
 	/* Note that Shift changes certain key codes: 2 -> at, etc. */
 	/* modifier                  key                  function          argument */
 	{ MODKEY,                    XKB_KEY_r,           spawn,            {.v = menucmd} },
+	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_Escape,      spawn,            {.v = lockcmd} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_p,           spawn,            {.v = powermenucmd} },
 	{ MODKEY,                    XKB_KEY_Return,      spawn,            {.v = termcmd} },
 	{ MODKEY,                    XKB_KEY_f,           spawn,            {.v = (const char*[]){ "firefox", NULL } } },
