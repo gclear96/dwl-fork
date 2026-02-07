@@ -50,8 +50,12 @@ static int log_level = WLR_ERROR;
 /* Autostart */
 static const char *const autostart[] = {
 	"wbg", "/path/to/your/image", NULL,
+	"/bin/sh", "-c", "$HOME/.config/dwl/session-env.sh", NULL,
 	"mako", NULL,
+	"/bin/sh", "-c", "$HOME/.config/dwl/polkit-agent.sh", NULL,
 	"/bin/sh", "-c", "$HOME/.config/dwl/idle.sh", NULL,
+	"/bin/sh", "-c", "$HOME/.config/dwl/cliphist-watch.sh", NULL,
+	"/bin/sh", "-c", "$HOME/.config/dwl/battery-notify.sh", NULL,
 	"/bin/sh", "-c", "$HOME/.config/someblocks/run.sh", NULL,
 	NULL /* terminate */
 };
@@ -160,6 +164,21 @@ static const char *menucmd[] = { "/bin/sh", "-c", "tofi-run --config \"$HOME/.co
 static const char *powermenucmd[] = { "/bin/sh", "-c", "$HOME/.config/tofi/power.sh", NULL };
 static const char *togglebarcmd[] = { "somebar", "-c", "toggle", "selected", NULL };
 static const char *lockcmd[] = { "/bin/sh", "-c", "$HOME/.config/dwl/lock.sh", NULL };
+static const char *clipmenucmd[] = { "/bin/sh", "-c", "$HOME/.config/dwl/clipmenu.sh", NULL };
+static const char *screenshotfullcmd[] = { "/bin/sh", "-c", "$HOME/.config/dwl/screenshot.sh full", NULL };
+static const char *screenshotareacmd[] = { "/bin/sh", "-c", "$HOME/.config/dwl/screenshot.sh area", NULL };
+static const char *recordtogglecmd[] = { "/bin/sh", "-c", "$HOME/.config/dwl/record.sh toggle", NULL };
+static const char *networkcmd[] = { "/bin/sh", "-c", "$HOME/.config/dwl/network.sh", NULL };
+static const char *bluetoothcmd[] = { "/bin/sh", "-c", "$HOME/.config/dwl/bluetooth.sh", NULL };
+static const char *volupcmd[] = { "/bin/sh", "-c", "$HOME/.config/dwl/volume.sh up", NULL };
+static const char *voldowncmd[] = { "/bin/sh", "-c", "$HOME/.config/dwl/volume.sh down", NULL };
+static const char *volmutecmd[] = { "/bin/sh", "-c", "$HOME/.config/dwl/volume.sh mute", NULL };
+static const char *micmutecmd[] = { "/bin/sh", "-c", "$HOME/.config/dwl/volume.sh micmute", NULL };
+static const char *brightnessupcmd[] = { "/bin/sh", "-c", "$HOME/.config/dwl/brightness.sh up", NULL };
+static const char *brightnessdowncmd[] = { "/bin/sh", "-c", "$HOME/.config/dwl/brightness.sh down", NULL };
+static const char *mediaplaycmd[] = { "/bin/sh", "-c", "$HOME/.config/dwl/media.sh play-pause", NULL };
+static const char *medianextcmd[] = { "/bin/sh", "-c", "$HOME/.config/dwl/media.sh next", NULL };
+static const char *mediaprevcmd[] = { "/bin/sh", "-c", "$HOME/.config/dwl/media.sh previous", NULL };
 /* named scratchpads - first arg matches the scratchkey in rules */
 static const char *scratchpadcmd[] = { "s", "alacritty", "-t", "scratchpad", NULL };
 
@@ -170,6 +189,10 @@ static const Key keys[] = {
 	/* modifier                  key                  function          argument */
 	{ MODKEY,                    XKB_KEY_r,           spawn,            {.v = menucmd} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_Escape,      spawn,            {.v = lockcmd} },
+	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_v,           spawn,            {.v = clipmenucmd} },
+	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_r,           spawn,            {.v = recordtogglecmd} },
+	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_n,           spawn,            {.v = networkcmd} },
+	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_b,           spawn,            {.v = bluetoothcmd} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_p,           spawn,            {.v = powermenucmd} },
 	{ MODKEY,                    XKB_KEY_Return,      spawn,            {.v = termcmd} },
 	{ MODKEY,                    XKB_KEY_f,           spawn,            {.v = (const char*[]){ "firefox", NULL } } },
@@ -255,6 +278,17 @@ static const Key keys[] = {
 	TAGKEYS(          XKB_KEY_8, XKB_KEY_asterisk,                      7),
 	TAGKEYS(          XKB_KEY_9, XKB_KEY_parenleft,                     8),
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_q,           quit,             {0} },
+	{ 0,                         XKB_KEY_Print,       spawn,            {.v = screenshotfullcmd} },
+	{ WLR_MODIFIER_SHIFT,        XKB_KEY_Print,       spawn,            {.v = screenshotareacmd} },
+	{ 0,                         XKB_KEY_XF86AudioRaiseVolume, spawn,    {.v = volupcmd} },
+	{ 0,                         XKB_KEY_XF86AudioLowerVolume, spawn,    {.v = voldowncmd} },
+	{ 0,                         XKB_KEY_XF86AudioMute, spawn,           {.v = volmutecmd} },
+	{ 0,                         XKB_KEY_XF86AudioMicMute, spawn,        {.v = micmutecmd} },
+	{ 0,                         XKB_KEY_XF86MonBrightnessUp, spawn,      {.v = brightnessupcmd} },
+	{ 0,                         XKB_KEY_XF86MonBrightnessDown, spawn,    {.v = brightnessdowncmd} },
+	{ 0,                         XKB_KEY_XF86AudioPlay, spawn,           {.v = mediaplaycmd} },
+	{ 0,                         XKB_KEY_XF86AudioNext, spawn,           {.v = medianextcmd} },
+	{ 0,                         XKB_KEY_XF86AudioPrev, spawn,           {.v = mediaprevcmd} },
 
 	/* Ctrl-Alt-Backspace and Ctrl-Alt-Fx used to be handled by X server */
 	{ WLR_MODIFIER_CTRL|WLR_MODIFIER_ALT,XKB_KEY_Terminate_Server, quit, {0} },

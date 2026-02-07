@@ -21,7 +21,15 @@ opacity controls, and local SceneFX integration for blur.
 
 ## Keybinds
 
-Keybinds are configured in `config.h` and intentionally unchanged from this fork's preferred defaults.
+Keybinds are configured in `config.h`.
+
+Additional daily-driver bindings added in this setup:
+- `Alt+Shift+Escape`: lock (`~/.config/dwl/lock.sh`)
+- `Alt+Shift+V`: clipboard history picker (`cliphist`)
+- `Alt+Shift+R`: toggle screen recording (`wf-recorder`)
+- `Print`: full screenshot
+- `Shift+Print`: area screenshot
+- media/volume/brightness: mapped to XF86 keys
 
 ## Prerequisites
 
@@ -39,6 +47,9 @@ Keybinds are configured in `config.h` and intentionally unchanged from this fork
 - seat/session manager for DRM backends (logind/seatd)
 - bar stack: `somebar` + `someblocks`
 - session services: `mako`, `swayidle`, `swaylock`
+- desktop integration: `xdg-desktop-portal`, `xdg-desktop-portal-wlr`, `xdg-desktop-portal-gtk`
+- auth agent: `lxqt-policykit` or `polkit-gnome`
+- helpers: `grim`, `slurp`, `wf-recorder`, `wl-clipboard`, `cliphist`, `playerctl`, `wpctl`, `brightnessctl`, `upower`
 
 ## Local SceneFX integration
 
@@ -74,7 +85,13 @@ rebuild dwl.
 ## somebar / someblocks workflow
 
 - autostart in `config.h` runs `~/.config/someblocks/run.sh`
-- autostart in `config.h` also runs `mako` and `~/.config/dwl/idle.sh`
+- autostart in `config.h` also runs:
+  - `~/.config/dwl/session-env.sh` (portal/dbus environment)
+  - `mako`
+  - `~/.config/dwl/polkit-agent.sh`
+  - `~/.config/dwl/idle.sh`
+  - `~/.config/dwl/cliphist-watch.sh`
+  - `~/.config/dwl/battery-notify.sh`
 - start dwl with somebar:
 
 ```sh
