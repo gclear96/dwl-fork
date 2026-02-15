@@ -3642,7 +3642,7 @@ void
 snail(Monitor *m)
 {
 	int i = 0, n = 0;
-	int mw = m->w.width;
+	int mw;
 	unsigned int draw_borders = 1;
 	int oe = 1; /* outer gap enabled */
 	int ie = 1; /* inner gap enabled */
@@ -3671,6 +3671,8 @@ snail(Monitor *m)
 		w = 1;
 	if (h < 1)
 		h = 1;
+
+	mw = w;
 
 	if (n > m->nmaster)
 		mw = m->nmaster ? (int)round(w * m->mfact) : 0;
