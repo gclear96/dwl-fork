@@ -9,6 +9,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/wait.h>
 #include <time.h>
 #include <scenefx/render/fx_renderer/fx_renderer.h>
@@ -354,6 +355,12 @@ static Client *focustop(Monitor *m);
 static void fullscreennotify(struct wl_listener *listener, void *data);
 static void gpureset(struct wl_listener *listener, void *data);
 static void handlesig(int signo);
+static int reloadcolorssignal(int signo, void *data);
+static void apply_dynamic_colors(void);
+static void init_dynamic_colors(void);
+static int load_dynamic_colors_file(const char *path);
+static int parse_hex_color(const char *value, float out[static 4]);
+static const char *default_dynamic_color_path(void);
 static void incnmaster(const Arg *arg);
 static void incgaps(const Arg *arg);
 static void incigaps(const Arg *arg);
@@ -505,6 +512,10 @@ static struct zdwl_ipc_output_v2_interface dwl_output_implementation = {
 	.set_client_tags = dwl_ipc_output_set_client_tags,
 };
 static int enablegaps = 1;   /* enables gaps, used by togglegaps */
+static float dynamic_rootcolor[4];
+static float dynamic_bordercolor[4];
+static float dynamic_focuscolor[4];
+static float dynamic_urgentcolor[4];
 
 /* global event handlers */
 static struct wl_listener cursor_axis = {.notify = axisnotify};
@@ -1921,7 +1932,7 @@ focusclient(Client *c, int lift)
 		/* Don't change border color if there is an exclusive focus or we are
 		 * handling a drag operation */
 		if (!exclusive_focus && !seat->drag)
-			client_set_border_color(c, focuscolor);
+			client_set_border_color(c, dynamic_focuscolor);
 	}
 
 	/* Deactivate old client if focus is changing */
@@ -1938,7 +1949,7 @@ focusclient(Client *c, int lift)
 		/* Don't deactivate old client if the new one wants focus, as this causes issues with winecfg
 		 * and probably other clients */
 		} else if (old_c && !client_is_unmanaged(old_c) && (!c || !client_wants_focus(c))) {
-			client_set_border_color(old_c, bordercolor);
+			client_set_border_color(old_c, dynamic_bordercolor);
 
 			client_activate_surface(old, 0);
 			old_c->opacity = old_c->opacity_unfocus;
@@ -2310,6 +2321,128 @@ handlesig(int signo)
 	}
 }
 
+int
+reloadcolorssignal(int signo, void *data)
+{
+	const char *path;
+
+	if (signo != SIGUSR1)
+		return 0;
+
+	path = default_dynamic_color_path();
+	if (path)
+		load_dynamic_colors_file(path);
+	apply_dynamic_colors();
+	return 0;
+}
+
+void
+init_dynamic_colors(void)
+{
+	memcpy(dynamic_rootcolor, rootcolor, sizeof(dynamic_rootcolor));
+	memcpy(dynamic_bordercolor, bordercolor, sizeof(dynamic_bordercolor));
+	memcpy(dynamic_focuscolor, focuscolor, sizeof(dynamic_focuscolor));
+	memcpy(dynamic_urgentcolor, urgentcolor, sizeof(dynamic_urgentcolor));
+}
+
+const char *
+default_dynamic_color_path(void)
+{
+	static char path[PATH_MAX];
+	const char *xdg_cache = getenv("XDG_CACHE_HOME");
+	const char *home = getenv("HOME");
+	int n;
+
+	if (xdg_cache && xdg_cache[0]) {
+		n = snprintf(path, sizeof(path), "%s/matugen/dwl-colors", xdg_cache);
+		if (n > 0 && n < (int)sizeof(path))
+			return path;
+	}
+	if (home && home[0]) {
+		n = snprintf(path, sizeof(path), "%s/.cache/matugen/dwl-colors", home);
+		if (n > 0 && n < (int)sizeof(path))
+			return path;
+	}
+	return NULL;
+}
+
+int
+parse_hex_color(const char *value, float out[static 4])
+{
+	unsigned int r, g, b, a = 255;
+	int matched;
+
+	if (!value || value[0] != '#')
+		return 0;
+
+	matched = sscanf(value + 1, "%2x%2x%2x%2x", &r, &g, &b, &a);
+	if (matched != 3 && matched != 4)
+		return 0;
+
+	out[0] = r / 255.0f;
+	out[1] = g / 255.0f;
+	out[2] = b / 255.0f;
+	out[3] = a / 255.0f;
+	return 1;
+}
+
+int
+load_dynamic_colors_file(const char *path)
+{
+	FILE *fp;
+	char line[256], key[64], value[64];
+	float parsed[4];
+
+	if (!path)
+		return 0;
+
+	fp = fopen(path, "r");
+	if (!fp)
+		return 0;
+
+	while (fgets(line, sizeof(line), fp)) {
+		if (line[0] == '#' || line[0] == '\n' || line[0] == '\0')
+			continue;
+		if (sscanf(line, " %63[^=]=%63s", key, value) != 2)
+			continue;
+		if (!parse_hex_color(value, parsed))
+			continue;
+
+		if (!strcmp(key, "root_bg"))
+			memcpy(dynamic_rootcolor, parsed, sizeof(dynamic_rootcolor));
+		else if (!strcmp(key, "border"))
+			memcpy(dynamic_bordercolor, parsed, sizeof(dynamic_bordercolor));
+		else if (!strcmp(key, "focus"))
+			memcpy(dynamic_focuscolor, parsed, sizeof(dynamic_focuscolor));
+		else if (!strcmp(key, "urgent"))
+			memcpy(dynamic_urgentcolor, parsed, sizeof(dynamic_urgentcolor));
+	}
+
+	fclose(fp);
+	return 1;
+}
+
+void
+apply_dynamic_colors(void)
+{
+	Client *c, *focused = NULL;
+	LayerSurface *l = NULL;
+
+	if (root_bg)
+		wlr_scene_rect_set_color(root_bg, dynamic_rootcolor);
+
+	toplevel_from_wlr_surface(seat ? seat->keyboard_state.focused_surface : NULL, &focused, &l);
+
+	wl_list_for_each(c, &clients, link) {
+		if (client_is_unmanaged(c))
+			continue;
+		if (seat && !exclusive_focus && !seat->drag && focused == c)
+			client_set_border_color(c, dynamic_focuscolor);
+		else
+			client_set_border_color(c, c->isurgent ? dynamic_urgentcolor : dynamic_bordercolor);
+	}
+}
+
 void
 incnmaster(const Arg *arg)
 {
@@ -2595,7 +2728,7 @@ mapnotify(struct wl_listener *listener, void *data)
 
 	for (i = 0; i < 4; i++) {
 		c->border[i] = wlr_scene_rect_create(c->scene, 0, 0,
-				c->isurgent ? urgentcolor : bordercolor);
+				c->isurgent ? dynamic_urgentcolor : dynamic_bordercolor);
 		c->border[i]->node.data = c;
 	}
 
@@ -3423,6 +3556,9 @@ setup(void)
 	 * clients from the Unix socket, manging Wayland globals, and so on. */
 	dpy = wl_display_create();
 	event_loop = wl_display_get_event_loop(dpy);
+	wl_event_loop_add_signal(event_loop, SIGUSR1, reloadcolorssignal, NULL);
+	init_dynamic_colors();
+	load_dynamic_colors_file(default_dynamic_color_path());
 
 	/* The backend is a wlroots feature which abstracts the underlying input and
 	 * output hardware. The autocreate option will choose the most suitable
@@ -3437,7 +3573,7 @@ setup(void)
 		wlr_scene_set_blur_data(scene, blur_data.num_passes, (int)blur_data.radius,
 				blur_data.noise, blur_data.brightness, blur_data.contrast,
 				blur_data.saturation);
-	root_bg = wlr_scene_rect_create(&scene->tree, 0, 0, rootcolor);
+	root_bg = wlr_scene_rect_create(&scene->tree, 0, 0, dynamic_rootcolor);
 	for (i = 0; i < NUM_LAYERS; i++)
 		layers[i] = wlr_scene_tree_create(&scene->tree);
 	drag_icon = wlr_scene_tree_create(&scene->tree);
@@ -4232,7 +4368,7 @@ urgent(struct wl_listener *listener, void *data)
 	printstatus();
 
 	if (client_surface(c)->mapped)
-		client_set_border_color(c, urgentcolor);
+		client_set_border_color(c, dynamic_urgentcolor);
 }
 
 void
@@ -4495,7 +4631,7 @@ sethints(struct wl_listener *listener, void *data)
 	printstatus();
 
 	if (c->isurgent && surface && surface->mapped)
-		client_set_border_color(c, urgentcolor);
+		client_set_border_color(c, dynamic_urgentcolor);
 }
 
 void

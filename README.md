@@ -66,6 +66,11 @@ Assumes `MODKEY = Alt`.
 - wallpaper/scaling helpers: `wbg`, `wlr-randr`
 - optional dynamic colors: `matugen` (with `~/.config/dwl/matugen-theme.sh` from `dwl-dotfiles`)
 
+### Runtime border color reload
+- dwl can reload border/root colors from `~/.cache/matugen/dwl-colors` on `SIGUSR1`
+- expected keys: `root_bg`, `border`, `focus`, `urgent` (`#RRGGBB` or `#RRGGBBAA`)
+- manual trigger: `pkill -USR1 -x dwl`
+
 ## Local SceneFX integration
 
 This repository is configured to build against a local SceneFX checkout by default.
