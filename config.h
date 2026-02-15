@@ -161,7 +161,7 @@ static const enum libinput_config_tap_button_map button_map = LIBINPUT_CONFIG_TA
 
 /* commands */
 static const char *termcmd[] = { "alacritty", NULL };
-static const char *menucmd[] = { "/bin/sh", "-c", "tofi-run --config \"$HOME/.config/tofi/config\"", NULL };
+static const char *menucmd[] = { "/bin/sh", "-c", "$HOME/.config/tofi/run.sh", NULL };
 static const char *powermenucmd[] = { "/bin/sh", "-c", "$HOME/.config/tofi/power.sh", NULL };
 static const char *togglebarcmd[] = { "somebar", "-c", "toggle", "selected", NULL };
 static const char *lockcmd[] = { "/bin/sh", "-c", "$HOME/.config/dwl/lock.sh", NULL };
@@ -236,7 +236,7 @@ static const Key keys[] = {
 	{ MODKEY|WLR_MODIFIER_LOGO,  XKB_KEY_o,           incohgaps,        {.i = -1 } },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_Y,           incovgaps,        {.i = +1 } },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_O,           incovgaps,        {.i = -1 } },
-	{ MODKEY,                    XKB_KEY_Return,      zoom,             {0} },
+	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_Return,      zoom,             {0} },
 	{ MODKEY,                    XKB_KEY_Tab,         view,             {0} },
 	{ MODKEY,                    XKB_KEY_a,           shiftview,        {.i = -1 } },
 	{ MODKEY,                    XKB_KEY_semicolon,   shiftview,        {.i = 1 } },
@@ -245,10 +245,10 @@ static const Key keys[] = {
 	{ MODKEY,                    XKB_KEY_m,           setlayout,        {.v = &layouts[2]} },
 	{ MODKEY,                    XKB_KEY_c,           setlayout,        {.v = &layouts[3]} },
 	{ MODKEY,                    XKB_KEY_p,           setlayout,        {.v = &layouts[4]} },
-	{ MODKEY|WLR_MODIFIER_CTRL,  XKB_KEY_k,           setopacityunfocus, {.f = +0.1f} },
-	{ MODKEY|WLR_MODIFIER_CTRL,  XKB_KEY_j,           setopacityunfocus, {.f = -0.1f} },
-	{ MODKEY|WLR_MODIFIER_CTRL|WLR_MODIFIER_SHIFT, XKB_KEY_K, setopacityfocus, {.f = +0.1f} },
-	{ MODKEY|WLR_MODIFIER_CTRL|WLR_MODIFIER_SHIFT, XKB_KEY_J, setopacityfocus, {.f = -0.1f} },
+	{ MODKEY|WLR_MODIFIER_LOGO,  XKB_KEY_k,           setopacityunfocus, {.f = +0.1f} },
+	{ MODKEY|WLR_MODIFIER_LOGO,  XKB_KEY_j,           setopacityunfocus, {.f = -0.1f} },
+	{ MODKEY|WLR_MODIFIER_LOGO|WLR_MODIFIER_SHIFT, XKB_KEY_K, setopacityfocus, {.f = +0.1f} },
+	{ MODKEY|WLR_MODIFIER_LOGO|WLR_MODIFIER_SHIFT, XKB_KEY_J, setopacityfocus, {.f = -0.1f} },
 	{ MODKEY,                    XKB_KEY_space,       setlayout,        {0} },
 	{ MODKEY,                    XKB_KEY_n,           nextlayout,       {0} },
 	{ MODKEY,                    XKB_KEY_v,           togglefloating,   {0} },

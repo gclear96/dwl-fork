@@ -31,6 +31,19 @@ Additional daily-driver bindings added in this setup:
 - `Shift+Print`: area screenshot
 - media/volume/brightness: mapped to XF86 keys
 
+### Quick cheat sheet
+
+Assumes `MODKEY = Alt`.
+
+- Launch: `Alt+R` app launcher, `Alt+Return` terminal, `Alt+F` Firefox
+- Focus/move: `Alt+H/J/K/L` focus direction, `Alt+Shift+H/J/K/L` swap direction
+- Stack order: `Alt+Ctrl+J/K` focus stack next/prev, `Alt+Ctrl+Shift+J/K` move stack down/up
+- Layouts: `Alt+T` tile, `Alt+M` monocle, `Alt+C` centered master, `Alt+P` snail, `Alt+Space` cycle
+- Window state: `Alt+V` toggle floating, `Alt+Shift+S` sticky, `Alt+E` fullscreen, `Alt+Shift+Return` zoom
+- Tags: `Alt+[ / ]` view rotate, `Alt+Shift+[ / ]` shift rotate, `Alt+Tab` previous view
+- Gaps: `Alt+Super+H/L` outer gaps, `Alt+Super+Ctrl+H/L` inner gaps, `Alt+Super+0` toggle gaps
+- Opacity: `Alt+Super+J/K` unfocused -/+, `Alt+Super+Shift+J/K` focused -/+
+
 ## Prerequisites
 
 ### Build

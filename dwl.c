@@ -115,6 +115,7 @@ typedef struct {
 	struct wlr_scene_tree *scene;
 	struct wlr_scene_rect *border[4]; /* top, bottom, left, right */
 	struct wlr_scene_tree *scene_surface;
+	struct wlr_scene_blur *scene_blur;
 	struct wl_list link;
 	struct wl_list flink;
 	struct wlr_box geom; /* layout-relative, includes border */
@@ -2571,6 +2572,11 @@ mapnotify(struct wl_listener *listener, void *data)
 			? wlr_scene_xdg_surface_create(c->scene, c->surface.xdg)
 			: wlr_scene_subsurface_tree_create(c->scene, client_surface(c));
 	c->scene->node.data = c->scene_surface->node.data = c;
+	if (blur) {
+		c->scene_blur = wlr_scene_blur_create(c->scene, 0, 0);
+		wlr_scene_blur_set_should_only_blur_bottom_layer(c->scene_blur, true);
+		wlr_scene_node_lower_to_bottom(&c->scene_blur->node);
+	}
 
 	client_get_geometry(c, &c->geom);
 
@@ -3079,6 +3085,12 @@ resize(Client *c, struct wlr_box geo, int interact, int draw_borders)
 	/* Update scene-graph, including borders */
 	wlr_scene_node_set_position(&c->scene->node, c->geom.x, c->geom.y);
 	wlr_scene_node_set_position(&c->scene_surface->node, c->bw, c->bw);
+	if (blur && c->scene_blur) {
+		wlr_scene_node_set_position(&c->scene_blur->node, c->bw, c->bw);
+		wlr_scene_blur_set_size(c->scene_blur,
+				MAX(c->geom.width - 2 * c->bw, 0),
+				MAX(c->geom.height - 2 * c->bw, 0));
+	}
 	wlr_scene_rect_set_size(c->border[0], c->geom.width, c->bw);
 	wlr_scene_rect_set_size(c->border[1], c->geom.width, c->bw);
 	wlr_scene_rect_set_size(c->border[2], c->bw, c->geom.height - 2 * c->bw);
@@ -3160,9 +3172,25 @@ void
 scenebuffersetopacity(struct wlr_scene_buffer *buffer, int sx, int sy, void *data)
 {
 	Client *c = data;
+	struct wlr_scene_surface *scene_surface;
+	struct wlr_xdg_surface *xdg_surface;
 	/* xdg-popups are children of Client.scene, we do not have to worry about
 	 * messing with them. */
 	wlr_scene_buffer_set_opacity(buffer, c->isfullscreen ? 1 : c->opacity);
+
+	if (!blur || !c->scene_blur)
+		return;
+
+	scene_surface = wlr_scene_surface_try_from_buffer(buffer);
+	if (!scene_surface)
+		return;
+
+	xdg_surface = wlr_xdg_surface_try_from_wlr_surface(scene_surface->surface);
+	if (!xdg_surface || xdg_surface->role != WLR_XDG_SURFACE_ROLE_TOPLEVEL)
+		return;
+
+	if (!wlr_subsurface_try_from_wlr_surface(xdg_surface->surface))
+		wlr_scene_blur_set_transparency_mask_source(c->scene_blur, buffer);
 }
 
 void
@@ -4677,6 +4705,11 @@ dwl_wm_handle_get_monitor(struct wl_client *client, struct wl_resource *resource
 		return;
 	}
 	dwl_wm_monitor = calloc(1, sizeof(DwlWmMonitor));
+	if (!dwl_wm_monitor) {
+		wl_client_post_no_memory(client);
+		wl_resource_destroy(dwlOutputResource);
+		return;
+	}
 	dwl_wm_monitor->resource = dwlOutputResource;
 	dwl_wm_monitor->monitor = m;
 	wl_resource_set_implementation(dwlOutputResource, &dwl_wm_monitor_implementation,
