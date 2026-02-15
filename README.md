@@ -64,6 +64,7 @@ Assumes `MODKEY = Alt`.
 - auth agent: `lxqt-policykit` or `polkit-gnome`
 - helpers: `grim`, `slurp`, `wf-recorder`, `wl-clipboard`, `cliphist`, `playerctl`, `wpctl`, `brightnessctl`, `upower`
 - wallpaper/scaling helpers: `wbg`, `wlr-randr`
+- optional dynamic colors: `matugen` (with `~/.config/dwl/matugen-theme.sh` from `dwl-dotfiles`)
 
 ## Local SceneFX integration
 
