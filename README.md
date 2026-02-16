@@ -27,6 +27,7 @@ Additional daily-driver bindings added in this setup:
 - `Alt+Shift+Escape`: lock (`~/.config/dwl/lock.sh`)
 - `Alt+Shift+V`: clipboard history picker (`cliphist`)
 - `Alt+Shift+R`: toggle screen recording (`wf-recorder`)
+- `Alt+Shift+W`: wallpaper picker with previews (`~/.config/dwl/wallpaper-picker.sh`)
 - `Print`: full screenshot
 - `Shift+Print`: area screenshot
 - media/volume/brightness: mapped to XF86 keys
@@ -35,7 +36,7 @@ Additional daily-driver bindings added in this setup:
 
 Assumes `MODKEY = Alt`.
 
-- Launch: `Alt+R` app launcher, `Alt+Return` terminal, `Alt+F` Firefox
+- Launch: `Alt+R` app launcher, `Alt+Return` terminal, `Alt+F` Firefox, `Alt+Shift+W` wallpaper picker
 - Focus/move: `Alt+H/J/K/L` focus direction, `Alt+Shift+H/J/K/L` swap direction
 - Stack order: `Alt+Ctrl+J/K` focus stack next/prev, `Alt+Ctrl+Shift+J/K` move stack down/up
 - Layouts: `Alt+T` tile, `Alt+M` monocle, `Alt+C` centered master, `Alt+P` snail, `Alt+Space` cycle
